@@ -16,11 +16,26 @@ internal static class FailurePropagator
 
             foreach (var dependent in graph.Reverse[invalidNode])
             {
+                if (AreInSameCycle(failureCollection, dependent, invalidNode)) continue;
+
                 if (!failureCollection.HasFailures(dependent))
                     queue.Enqueue(dependent);
 
                 failureCollection.AddFailureReason(dependent, new DependsOnInvalidReason<TKey>(invalidNode));
             }
         }
+    }
+
+    private static bool AreInSameCycle<TKey>(FailureCollection<TKey> failureCollection, TKey a, TKey b) where TKey : notnull
+    {
+        foreach (var reasons in failureCollection.GetFailureReasons(a))
+        {
+            if (reasons is CycleReason<TKey> cycle && cycle.Cycle.NodesInCycle.Contains(b))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

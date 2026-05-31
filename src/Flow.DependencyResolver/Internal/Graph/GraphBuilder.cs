@@ -26,7 +26,7 @@ internal static class GraphBuilder
                     if (dependency.IsOptional)
                         continue;
 
-                    failureCollection.AddFailureReason(node.Key, new MissingDependencyReason<TKey>(dependency.Key));
+                    failureCollection.AddFailureReason(node.Key, new DependsOnMissingDependency<TKey>(dependency.Key));
 
                     continue;
                 }

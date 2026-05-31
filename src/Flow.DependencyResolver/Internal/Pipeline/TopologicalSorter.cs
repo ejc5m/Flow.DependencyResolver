@@ -38,7 +38,7 @@ internal static class TopologicalSorter
 
             foreach (var dependent in graph.Reverse[node])
             {
-                if (failureCollection.HasFailures(node)) continue;
+                if (failureCollection.HasFailures(dependent)) continue;
 
                 if (--inDegree[dependent] == 0)
                     queue.Enqueue(dependent);
