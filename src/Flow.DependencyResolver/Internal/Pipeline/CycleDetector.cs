@@ -41,7 +41,7 @@ internal static class CycleDetector
 
                 foreach (var nodeInCycle in cycle)
                 {
-                    failureCollection.AddFailureReason(nodeInCycle, new PartOfACycle<TKey>(cycle));
+                    failureCollection.AddFailureReason(nodeInCycle, new PartOfACycleFailure<TKey>(cycle));
                 }
             }
         }

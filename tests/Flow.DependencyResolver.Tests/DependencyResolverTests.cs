@@ -5,11 +5,6 @@ namespace Flow.DependencyResolver.Tests;
 
 public class Tests
 {
-    [SetUp]
-    public void Setup()
-    {
-    }
-
     [Test]
     public void SimpleDependencyChainTest()
     {
@@ -30,7 +25,7 @@ public class Tests
         List<TestingItem> Items = [];
         Items.Add(new TestingItem() { Name = "A" });
         Items.Add(new TestingItem()
-        { 
+        {
             Name = "B",
             Dependencies = [new Dependency<string>("A")],
         });
@@ -42,7 +37,7 @@ public class Tests
         Items.Add(new TestingItem()
         {
             Name = "D",
-            Dependencies = 
+            Dependencies =
             [
                 new Dependency<string>("B"),
                 new Dependency<string>("C"),
@@ -72,7 +67,7 @@ public class Tests
             Assert.That(results.Ordered.SequenceEqual(["A"]));
 
             var fails = results.Failures.GetFailureReasons(results.Failures.FailedKeys[0]);
-            Assert.That(fails[0] is DependsOnMissingDependency<string>);
+            Assert.That(fails[0] is DependsOnMissingDependencyFailure<string>);
         });
     }
 
@@ -119,7 +114,7 @@ public class Tests
                 //Should be a single CycleReason and not also a DependsOnInvalid
                 Assert.That(failReasons.Count is 1);
 
-                Assert.That(failReasons[0] is PartOfACycle<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["A","B"]));
+                Assert.That(failReasons[0] is PartOfACycleFailure<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["A", "B"]));
             }
         });
     }
@@ -162,7 +157,7 @@ public class Tests
                 //Should be a single CycleReason and not also a DependsOnInvalid
                 Assert.That(failReasons.Count is 1);
 
-                Assert.That(failReasons[0] is PartOfACycle<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["A", "B", "C", "D"]));
+                Assert.That(failReasons[0] is PartOfACycleFailure<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["A", "B", "C", "D"]));
             }
         });
     }
@@ -204,12 +199,12 @@ public class Tests
                 //Part of cycle
                 if (key is "A" or "B")
                 {
-                    Assert.That(failReasons[0] is PartOfACycle<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["A", "B"]));
+                    Assert.That(failReasons[0] is PartOfACycleFailure<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["A", "B"]));
                 }
                 //Depends on the cycle
                 else if (key is "C")
                 {
-                    Assert.That(failReasons[0] is DependsOnInvalidDependency<string> invalid && invalid.Dependency is "A");
+                    Assert.That(failReasons[0] is DependsOnInvalidDependencyFailure<string> invalid && invalid.Dependency is "A");
                 }
             }
         });
@@ -259,12 +254,12 @@ public class Tests
                 //Part of cycle 1
                 if (key is "A" or "B")
                 {
-                    Assert.That(failReasons[0] is PartOfACycle<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["A", "B"]));
+                    Assert.That(failReasons[0] is PartOfACycleFailure<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["A", "B"]));
                 }
                 //Part of cycle 2
                 else if (key is "C" or "D")
                 {
-                    Assert.That(failReasons[0] is PartOfACycle<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["C", "D"]));
+                    Assert.That(failReasons[0] is PartOfACycleFailure<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["C", "D"]));
                 }
             }
         });
@@ -339,28 +334,44 @@ public class Tests
 
                 if (key is "MissingConsumer")
                 {
-                    Assert.That(failReasons[0] is DependsOnMissingDependency<string> missing && missing.MissingKey is "NotPresent");
+                    Assert.That(failReasons[0] is DependsOnMissingDependencyFailure<string> missing && missing.MissingKey is "NotPresent");
                 }
                 else if (key is "CycleA" or "CycleB")
                 {
-                    Assert.That(failReasons[0] is PartOfACycle<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["CycleA", "CycleB"]));
+                    Assert.That(failReasons[0] is PartOfACycleFailure<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["CycleA", "CycleB"]));
                 }
                 else if (key is "Worker")
                 {
-                    Assert.That(failReasons[0] is DependsOnInvalidDependency<string> invalid && invalid.Dependency is "CycleA");
+                    Assert.That(failReasons[0] is DependsOnInvalidDependencyFailure<string> invalid && invalid.Dependency is "CycleA");
                 }
             }
         });
     }
 
+    [Test]
+    public void DuplicateKeys()
+    {
+        List<TestingItem> Items =
+        [
+            new TestingItem("Item 1", []),
+            new TestingItem("Item 2", [new Dependency<string>("Item 4").Optional()]),
+            new TestingItem("Item 3", [new("Item 5")]),
+            new TestingItem("Item 4", [new("Item 9")]),
+            new TestingItem("Item 4", []),
+            new TestingItem("Item 5", []),
+        ];
 
+        var results = DependencyResolver.Resolve(Items, item => item.Name, item => item.Dependencies);
 
+        Assert.Multiple(() =>
+        {
+            //Make sure the duplicate didn't get added
+            Assert.That(results.Ordered.Contains("Item 4") is false);
 
+            //Also make sure that the 1st instance was added and failed
+            Assert.That(results.Failures.GetFailureReasons("Item 4")[0] is DependsOnMissingDependencyFailure<string>);
 
-
-
-
-
-
-
+            Assert.That(results.Failures.GetGlobalFailures()[0] is DuplicateKeyFailure<string> duplicate && duplicate.Duplicate is "Item 4");
+        });
+    }
 }

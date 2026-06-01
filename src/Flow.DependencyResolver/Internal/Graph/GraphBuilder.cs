@@ -11,6 +11,12 @@ internal static class GraphBuilder
 
         foreach (var node in nodes)
         {
+            if (graph.Forward.ContainsKey(node.Key))
+            {
+                failureCollection.AddGlobalFailure(new DuplicateKeyFailure<TKey>(node.Key));
+                continue;
+            }
+
             graph.Forward[node.Key] = [];
             graph.Reverse[node.Key] = [];
         }
@@ -26,7 +32,7 @@ internal static class GraphBuilder
                     if (dependency.IsOptional)
                         continue;
 
-                    failureCollection.AddFailureReason(node.Key, new DependsOnMissingDependency<TKey>(dependency.Key));
+                    failureCollection.AddFailureReason(node.Key, new DependsOnMissingDependencyFailure<TKey>(dependency.Key));
 
                     continue;
                 }

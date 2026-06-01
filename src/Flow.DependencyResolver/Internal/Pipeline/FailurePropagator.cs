@@ -21,7 +21,7 @@ internal static class FailurePropagator
                 if (!failureCollection.HasFailures(dependent))
                     queue.Enqueue(dependent);
 
-                failureCollection.AddFailureReason(dependent, new DependsOnInvalidDependency<TKey>(invalidNode));
+                failureCollection.AddFailureReason(dependent, new DependsOnInvalidDependencyFailure<TKey>(invalidNode));
             }
         }
     }
@@ -29,12 +29,8 @@ internal static class FailurePropagator
     private static bool AreInSameCycle<TKey>(FailureCollection<TKey> failureCollection, TKey a, TKey b) where TKey : notnull
     {
         foreach (var reasons in failureCollection.GetFailureReasons(a))
-        {
-            if (reasons is PartOfACycle<TKey> cycle && cycle.Cycle.NodesInCycle.Contains(b))
-            {
+            if (reasons is PartOfACycleFailure<TKey> cycle && cycle.Cycle.NodesInCycle.Contains(b))
                 return true;
-            }
-        }
 
         return false;
     }

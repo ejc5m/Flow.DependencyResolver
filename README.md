@@ -2,4 +2,6 @@
 
 A simple dependency resolver for dotnet
 
-Examples coming soon...
+Resolves dependencies by 
+
+## Quick Example
