@@ -10,7 +10,8 @@
 		<PackageId>Flow.DependencyResolver</PackageId>
 		<Version>1.0.0-beta.1</Version>
 		<Authors>ejc5million</Authors>
-		<Description>A simple dependency resolver</Description>
+		<Description>A simple dependency resolver for dotnet</Description>
+		<Copyright>© 2026 ejc5million</Copyright>
 		
 		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
@@ -19,6 +20,7 @@
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 		
 		<RepositoryUrl>https://github.com/ejc5m/Flow.DependencyResolver</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/ejc5m/Flow.DependencyResolver</PackageProjectUrl>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 
 		<IncludeSymbols>true</IncludeSymbols>
