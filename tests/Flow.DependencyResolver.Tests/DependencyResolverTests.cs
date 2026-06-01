@@ -67,7 +67,7 @@ public class Tests
             Assert.That(results.Ordered.SequenceEqual(["A"]));
 
             var fails = results.Failures.GetFailureReasons(results.Failures.FailedKeys[0]);
-            Assert.That(fails[0] is DependsOnMissingDependencyFailure<string>);
+            Assert.That(fails[0] is MissingDependencyFailure<string>);
         });
     }
 
@@ -204,7 +204,7 @@ public class Tests
                 //Depends on the cycle
                 else if (key is "C")
                 {
-                    Assert.That(failReasons[0] is DependsOnInvalidDependencyFailure<string> invalid && invalid.Dependency is "A");
+                    Assert.That(failReasons[0] is InvalidDependencyFailure<string> invalid && invalid.Dependency is "A");
                 }
             }
         });
@@ -334,7 +334,7 @@ public class Tests
 
                 if (key is "MissingConsumer")
                 {
-                    Assert.That(failReasons[0] is DependsOnMissingDependencyFailure<string> missing && missing.MissingKey is "NotPresent");
+                    Assert.That(failReasons[0] is MissingDependencyFailure<string> missing && missing.MissingKey is "NotPresent");
                 }
                 else if (key is "CycleA" or "CycleB")
                 {
@@ -342,7 +342,7 @@ public class Tests
                 }
                 else if (key is "Worker")
                 {
-                    Assert.That(failReasons[0] is DependsOnInvalidDependencyFailure<string> invalid && invalid.Dependency is "CycleA");
+                    Assert.That(failReasons[0] is InvalidDependencyFailure<string> invalid && invalid.Dependency is "CycleA");
                 }
             }
         });
@@ -369,7 +369,7 @@ public class Tests
             Assert.That(results.Ordered.Contains("Item 4") is false);
 
             //Also make sure that the 1st instance was added and failed
-            Assert.That(results.Failures.GetFailureReasons("Item 4")[0] is DependsOnMissingDependencyFailure<string>);
+            Assert.That(results.Failures.GetFailureReasons("Item 4")[0] is MissingDependencyFailure<string>);
 
             Assert.That(results.Failures.GetGlobalFailures()[0] is DuplicateKeyFailure<string> duplicate && duplicate.Duplicate is "Item 4");
         });

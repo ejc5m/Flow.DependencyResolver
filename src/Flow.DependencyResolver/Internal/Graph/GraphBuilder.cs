@@ -32,7 +32,7 @@ internal static class GraphBuilder
                     if (dependency.IsOptional)
                         continue;
 
-                    failureCollection.AddFailureReason(node.Key, new DependsOnMissingDependencyFailure<TKey>(dependency.Key));
+                    failureCollection.AddFailureReason(node.Key, new MissingDependencyFailure<TKey>(dependency.Key));
 
                     continue;
                 }

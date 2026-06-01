@@ -6,4 +6,6 @@ public sealed class PartOfACycleFailure<TKey> : IFailureReason
 
     public PartOfACycleFailure(DependencyCycle<TKey> cycle) => Cycle = cycle;
     public PartOfACycleFailure(IReadOnlyList<TKey> cycle) => Cycle = DependencyCycle<TKey>.Create(cycle);
+
+    public override string ToString() => $"Part of cycle '{Cycle}'.";
 }

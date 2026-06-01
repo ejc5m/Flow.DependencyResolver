@@ -26,8 +26,21 @@ internal sealed class FailureCollection<TKey> : IReadOnlyFailureCollection<TKey>
 
     public IReadOnlyList<IFailureReason> GetGlobalFailures() => _globalFailures;
 
-    public IReadOnlyList<IFailureReason> GetFailureReasons(TKey key)
+    public IReadOnlyList<IFailureReason> GetFailureReasonsOfKey(TKey key)
     {
         return _failureReasons.TryGetValue(key, out var failReasons) ? failReasons : Array.Empty<IFailureReason>();
+    }
+
+    public IReadOnlyList<Failure<TKey>> GetAllFailures()
+    {
+        List<Failure<TKey>> reasons = [];
+        foreach (var (key, failReasons) in _failureReasons)
+        {
+            foreach (var failReason in failReasons)
+            {
+                reasons.Add(new Failure<TKey>(key, failReason));
+            }
+        }
+        return reasons;
     }
 }
