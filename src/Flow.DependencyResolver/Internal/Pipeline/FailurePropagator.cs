@@ -21,7 +21,7 @@ internal static class FailurePropagator
                 if (!failureCollection.HasFailures(dependent))
                     queue.Enqueue(dependent);
 
-                failureCollection.AddFailureReason(dependent, new DependsOnInvalidReason<TKey>(invalidNode));
+                failureCollection.AddFailureReason(dependent, new DependsOnInvalidDependency<TKey>(invalidNode));
             }
         }
     }
@@ -30,7 +30,7 @@ internal static class FailurePropagator
     {
         foreach (var reasons in failureCollection.GetFailureReasons(a))
         {
-            if (reasons is CycleReason<TKey> cycle && cycle.Cycle.NodesInCycle.Contains(b))
+            if (reasons is PartOfACycle<TKey> cycle && cycle.Cycle.NodesInCycle.Contains(b))
             {
                 return true;
             }

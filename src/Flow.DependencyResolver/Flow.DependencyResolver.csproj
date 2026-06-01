@@ -1,16 +1,33 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
+	<PropertyGroup Label="Code">
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	</PropertyGroup>
 
+	<PropertyGroup Label="Package">
 		<PackageId>Flow.DependencyResolver</PackageId>
 		<Version>1.0.0-beta.1</Version>
 		<Authors>ejc5million</Authors>
 		<Description>A simple dependency resolver</Description>
+		
+		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		
+		<RepositoryUrl>https://github.com/ejc5m/Flow.DependencyResolver</RepositoryUrl>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 	</PropertyGroup>
+
+	<ItemGroup Label="Package">
+		<None Include="..\..\README.md" Pack="true" PackagePath="\" />
+		<None Include="..\..\LICENSE.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
 
 </Project>

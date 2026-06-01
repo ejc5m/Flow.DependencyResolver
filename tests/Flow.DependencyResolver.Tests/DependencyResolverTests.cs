@@ -119,7 +119,7 @@ public class Tests
                 //Should be a single CycleReason and not also a DependsOnInvalid
                 Assert.That(failReasons.Count is 1);
 
-                Assert.That(failReasons[0] is CycleReason<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["A","B"]));
+                Assert.That(failReasons[0] is PartOfACycle<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["A","B"]));
             }
         });
     }
@@ -162,7 +162,7 @@ public class Tests
                 //Should be a single CycleReason and not also a DependsOnInvalid
                 Assert.That(failReasons.Count is 1);
 
-                Assert.That(failReasons[0] is CycleReason<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["A", "B", "C", "D"]));
+                Assert.That(failReasons[0] is PartOfACycle<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["A", "B", "C", "D"]));
             }
         });
     }
@@ -204,12 +204,12 @@ public class Tests
                 //Part of cycle
                 if (key is "A" or "B")
                 {
-                    Assert.That(failReasons[0] is CycleReason<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["A", "B"]));
+                    Assert.That(failReasons[0] is PartOfACycle<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["A", "B"]));
                 }
                 //Depends on the cycle
                 else if (key is "C")
                 {
-                    Assert.That(failReasons[0] is DependsOnInvalidReason<string> invalid && invalid.Dependency is "A");
+                    Assert.That(failReasons[0] is DependsOnInvalidDependency<string> invalid && invalid.Dependency is "A");
                 }
             }
         });
@@ -259,12 +259,12 @@ public class Tests
                 //Part of cycle 1
                 if (key is "A" or "B")
                 {
-                    Assert.That(failReasons[0] is CycleReason<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["A", "B"]));
+                    Assert.That(failReasons[0] is PartOfACycle<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["A", "B"]));
                 }
                 //Part of cycle 2
                 else if (key is "C" or "D")
                 {
-                    Assert.That(failReasons[0] is CycleReason<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["C", "D"]));
+                    Assert.That(failReasons[0] is PartOfACycle<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["C", "D"]));
                 }
             }
         });
@@ -343,11 +343,11 @@ public class Tests
                 }
                 else if (key is "CycleA" or "CycleB")
                 {
-                    Assert.That(failReasons[0] is CycleReason<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["CycleA", "CycleB"]));
+                    Assert.That(failReasons[0] is PartOfACycle<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["CycleA", "CycleB"]));
                 }
                 else if (key is "Worker")
                 {
-                    Assert.That(failReasons[0] is DependsOnInvalidReason<string> invalid && invalid.Dependency is "CycleA");
+                    Assert.That(failReasons[0] is DependsOnInvalidDependency<string> invalid && invalid.Dependency is "CycleA");
                 }
             }
         });
