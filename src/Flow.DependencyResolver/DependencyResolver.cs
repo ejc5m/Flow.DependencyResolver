@@ -51,13 +51,13 @@ public static class DependencyResolver
         private DependencyKeySelector<T, TKey>? _keyGetter = null;
         private DependencySelector<T, TKey>? _dependencyGetter = null;
 
-        public Builder<T, TKey> UseKey(DependencyKeySelector<T, TKey> getKey)
+        public Builder<T, TKey> WithKey(DependencyKeySelector<T, TKey> getKey)
         {
             _keyGetter = getKey;
             return this;
         }
 
-        public Builder<T, TKey> DependsOn(DependencySelector<T, TKey> getDependencies)
+        public Builder<T, TKey> WithDependencies(DependencySelector<T, TKey> getDependencies)
         {
             _dependencyGetter = getDependencies;
             return this;
