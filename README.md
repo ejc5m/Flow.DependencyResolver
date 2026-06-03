@@ -14,6 +14,7 @@ It resolves dependencies by removing duplicates, detecting cycles, propogating f
 ```csharp
 using Flow.DependencyResolver;
 
+//An example of a possible type you could use, but even direct references to classes can work
 public record TestingItem(string Name, Dependency<string>[] Dependencies);
 
 List<TestingItem> items =
@@ -73,7 +74,7 @@ foreach (var failure in results.Failures.EnumerateFailures())
     Console.WriteLine(failure);
 ```
 will print
-```csharp
+```
 Duplicate key 'Item 4'.
 Item 4: Missing dependency 'Item 9'.
 Item 6: Part of cycle 'Item 6 -> Item 7 -> Item 6'.
