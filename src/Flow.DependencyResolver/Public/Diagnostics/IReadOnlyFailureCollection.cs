@@ -2,9 +2,7 @@
 
 public interface IReadOnlyFailureCollection<TKey> where TKey : notnull
 {
-    public IReadOnlyList<TKey> FailedKeys { get; }
-    public bool HasFailures(TKey key);
-    public IReadOnlyList<IFailureReason> GetGlobalFailures();
-    public IReadOnlyList<IFailureReason> GetFailureReasonsOfKey(TKey key);
-    public IReadOnlyList<Failure<TKey>> GetAllFailures();
+    public IReadOnlyList<Failure> GlobalFailures { get; }
+    public IReadOnlyDictionary<TKey, IReadOnlyList<KeyedFailure<TKey>>> FailuresByKey { get; }
+    public IEnumerable<IFailure> EnumerateFailures();
 }

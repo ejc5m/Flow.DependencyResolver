@@ -8,7 +8,7 @@
 
 	<PropertyGroup Label="Package">
 		<PackageId>Flow.DependencyResolver</PackageId>
-		<Version>1.0.0-beta.1</Version>
+		<Version>1.0.0-beta.2</Version>
 		<Authors>ejc5million</Authors>
 		<Description>A simple dependency resolver for dotnet</Description>
 		<Copyright>© 2026 ejc5million</Copyright>

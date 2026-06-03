@@ -4,43 +4,39 @@ namespace Flow.DependencyResolver.Internal.Diagnostics;
 
 internal sealed class FailureCollection<TKey> : IReadOnlyFailureCollection<TKey> where TKey : notnull
 {
-    private readonly List<IFailureReason> _globalFailures = []; 
-    private readonly Dictionary<TKey, List<IFailureReason>> _failureReasons = [];
+    private readonly List<Failure> _globalFailures = []; 
+    private readonly Dictionary<TKey, List<KeyedFailure<TKey>>> _failuresByKey = [];
 
-    public IReadOnlyList<TKey> FailedKeys => _failureReasons.Keys.ToList();
+    //Public API
+    public IReadOnlyList<Failure> GlobalFailures => _globalFailures;
 
-    public bool HasFailures(TKey key) => _failureReasons.ContainsKey(key);
+    public IReadOnlyDictionary<TKey, IReadOnlyList<KeyedFailure<TKey>>> FailuresByKey =>
+        _failuresByKey.ToDictionary(x => x.Key, x => (IReadOnlyList<KeyedFailure<TKey>>)x.Value.AsReadOnly()).AsReadOnly();
+
+    public IEnumerable<IFailure> EnumerateFailures()
+    {
+        foreach (var failure in GlobalFailures)
+            yield return failure;
+
+        foreach (var (key, failures) in FailuresByKey)
+            foreach (var failure in failures)
+                yield return failure;
+    }
+
+    //Internal helper methods
+    internal IReadOnlySet<TKey> FailedKeys => _failuresByKey.Keys.ToHashSet();
+    internal bool HasFailures(TKey key) => _failuresByKey.ContainsKey(key);
 
     internal void AddFailureReason(TKey key, IFailureReason reason)
     {
-        if (!_failureReasons.TryGetValue(key, out var failReasons))
+        if (!_failuresByKey.TryGetValue(key, out var failReasons))
         {
             failReasons = [];
-            _failureReasons[key] = failReasons;
+            _failuresByKey[key] = failReasons;
         }
 
-        failReasons.Add(reason);
+        failReasons.Add(new(key, reason));
     }
 
-    internal void AddGlobalFailure(IFailureReason reason) => _globalFailures.Add(reason);
-
-    public IReadOnlyList<IFailureReason> GetGlobalFailures() => _globalFailures;
-
-    public IReadOnlyList<IFailureReason> GetFailureReasonsOfKey(TKey key)
-    {
-        return _failureReasons.TryGetValue(key, out var failReasons) ? failReasons : Array.Empty<IFailureReason>();
-    }
-
-    public IReadOnlyList<Failure<TKey>> GetAllFailures()
-    {
-        List<Failure<TKey>> reasons = [];
-        foreach (var (key, failReasons) in _failureReasons)
-        {
-            foreach (var failReason in failReasons)
-            {
-                reasons.Add(new Failure<TKey>(key, failReason));
-            }
-        }
-        return reasons;
-    }
+    internal void AddGlobalFailure(IFailureReason reason) => _globalFailures.Add(new(reason));
 }

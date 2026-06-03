@@ -66,5 +66,22 @@ All failures encountered along the way will be added to a Failure Collection you
 ```csharp
 results.FailureCollection
 ```
-...
-# WIP
+
+All the failures have a default message you can use, so
+```csharp
+foreach (var failure in results.Failures.EnumerateFailures())
+    Console.WriteLine(failure);
+```
+will print
+```csharp
+Duplicate key 'Item 4'.
+Item 4: Missing dependency 'Item 9'.
+Item 6: Part of cycle 'Item 6 -> Item 7 -> Item 6'.
+Item 7: Part of cycle 'Item 6 -> Item 7 -> Item 6'.
+Item 2: Required dependency 'Item 4' is invalid.
+```
+But you can also make your own message using failure.Reason, and if the failure is of type KeyedFailure\<TKey> you can cast and get failure.Key from it
+
+You can also use the `results.Failures.FailuresByKey` dictionary to manually enumerate failures on all nodes or to get failures for a specific node.
+
+And you can use `results.Failures.GlobalFailures` to manually enumerate all failures not attached to a specific node (Duplicate key failures)

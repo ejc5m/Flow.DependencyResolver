@@ -1,11 +1,13 @@
 ﻿namespace Flow.DependencyResolver.Diagnostics;
 
-public sealed class PartOfACycleFailure<TKey> : IFailureReason
+public sealed record PartOfACycleFailure<TKey>(IReadOnlyList<TKey> NodesInCycle) : IFailureReason
 {
-    public DependencyCycle<TKey> Cycle;
+    public override string ToString()
+    {
+        string cycleText = string.Empty;
+        if (NodesInCycle.Count is not 0)
+            cycleText = $"{string.Join(" -> ", NodesInCycle)} -> {NodesInCycle[0]}";
 
-    public PartOfACycleFailure(DependencyCycle<TKey> cycle) => Cycle = cycle;
-    public PartOfACycleFailure(IReadOnlyList<TKey> cycle) => Cycle = DependencyCycle<TKey>.Create(cycle);
-
-    public override string ToString() => $"Part of cycle '{Cycle}'.";
+        return $"Part of cycle '{cycleText}'.";
+    }
 }
