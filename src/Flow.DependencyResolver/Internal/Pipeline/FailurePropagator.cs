@@ -28,11 +28,11 @@ internal static class FailurePropagator
 
     private static bool AreInSameCycle<TKey>(FailureCollection<TKey> failureCollection, TKey a, TKey b) where TKey : notnull
     {
-        if (!failureCollection.FailuresByKey.TryGetValue(a, out var reasons))
+        if (!failureCollection.FailuresByKey.TryGetValue(a, out var failures))
             return false;
 
-        foreach (var reason in reasons)
-            if (reason is PartOfACycleFailure<TKey> cycle && cycle.NodesInCycle.Contains(b))
+        foreach (var failure in failures)
+            if (failure.Reason is PartOfACycleFailure<TKey> cycle && cycle.NodesInCycle.Contains(b))
                 return true;
 
         return false;

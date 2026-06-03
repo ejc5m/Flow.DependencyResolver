@@ -1,5 +1,4 @@
 using Flow.DependencyResolver.Diagnostics;
-using NUnit.Framework.Interfaces;
 
 namespace Flow.DependencyResolver.Tests;
 
@@ -66,8 +65,8 @@ public class Tests
         {
             Assert.That(results.Ordered.SequenceEqual(["A"]));
 
-            var fails = results.Failures.GetFailureReasons(results.Failures.FailedKeys[0]);
-            Assert.That(fails[0] is MissingDependencyFailure<string>);
+            var fails = results.Failures.FailuresByKey["B"];
+            Assert.That(fails[0].Reason is MissingDependencyFailure<string>);
         });
     }
 
@@ -105,16 +104,21 @@ public class Tests
 
         Assert.Multiple(() =>
         {
-            Assert.That(results.Ordered.SequenceEqual([]));
+            Assert.That(results.Ordered.Count is 0);
 
-            Assert.That(results.Failures.FailedKeys.Count is 2);
-            foreach (var key in results.Failures.FailedKeys)
+            Assert.That(results.Failures.FailuresByKey.Keys.Count() is 2);
+
+            var aFailures = results.Failures.FailuresByKey["A"];
+            var bFailures = results.Failures.FailuresByKey["B"];
+
+            Assert.That(aFailures.Count is 1);
+            Assert.That(bFailures.Count is 1);
+
             {
-                var failReasons = results.Failures.GetFailureReasons(key);
-                //Should be a single CycleReason and not also a DependsOnInvalid
-                Assert.That(failReasons.Count is 1);
-
-                Assert.That(failReasons[0] is PartOfACycleFailure<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["A", "B"]));
+                Assert.That(aFailures[0].Reason is PartOfACycleFailure<string> cycle && cycle.NodesInCycle.SequenceEqual(["A", "B"]));
+            }
+            {
+                Assert.That(bFailures[0].Reason is PartOfACycleFailure<string> cycle && cycle.NodesInCycle.SequenceEqual(["A", "B"]));
             }
         });
     }
@@ -148,16 +152,32 @@ public class Tests
 
         Assert.Multiple(() =>
         {
-            Assert.That(results.Ordered.SequenceEqual([]));
+            Assert.That(results.Ordered.Count is 0);
 
-            Assert.That(results.Failures.FailedKeys.Count is 4);
-            foreach (var key in results.Failures.FailedKeys)
+            Assert.That(results.Failures.FailuresByKey.Keys.Count() is 4);
+
+            var aFailures = results.Failures.FailuresByKey["A"];
+            var bFailures = results.Failures.FailuresByKey["B"];
+            var cFailures = results.Failures.FailuresByKey["C"];
+            var dFailures = results.Failures.FailuresByKey["D"];
+
+            //Should be a single CycleReason and not also a DependsOnInvalid
+            Assert.That(aFailures.Count is 1);
+            Assert.That(bFailures.Count is 1);
+            Assert.That(cFailures.Count is 1);
+            Assert.That(dFailures.Count is 1);
+
             {
-                var failReasons = results.Failures.GetFailureReasons(key);
-                //Should be a single CycleReason and not also a DependsOnInvalid
-                Assert.That(failReasons.Count is 1);
-
-                Assert.That(failReasons[0] is PartOfACycleFailure<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["A", "B", "C", "D"]));
+                Assert.That(aFailures[0].Reason is PartOfACycleFailure<string> cycle && cycle.NodesInCycle.SequenceEqual(["A", "B", "C", "D"]));
+            }
+            {
+                Assert.That(bFailures[0].Reason is PartOfACycleFailure<string> cycle && cycle.NodesInCycle.SequenceEqual(["A", "B", "C", "D"]));
+            }
+            {
+                Assert.That(cFailures[0].Reason is PartOfACycleFailure<string> cycle && cycle.NodesInCycle.SequenceEqual(["A", "B", "C", "D"]));
+            }
+            {
+                Assert.That(dFailures[0].Reason is PartOfACycleFailure<string> cycle && cycle.NodesInCycle.SequenceEqual(["A", "B", "C", "D"]));
             }
         });
     }
@@ -187,25 +207,26 @@ public class Tests
 
         Assert.Multiple(() =>
         {
-            Assert.That(results.Ordered.SequenceEqual([]));
+            Assert.That(results.Ordered.Count is 0);
 
-            Assert.That(results.Failures.FailedKeys.Count is 3);
-            foreach (var key in results.Failures.FailedKeys)
+            Assert.That(results.Failures.FailuresByKey.Keys.Count() is 3);
+
+            var aFailures = results.Failures.FailuresByKey["A"];
+            var bFailures = results.Failures.FailuresByKey["B"];
+            var cFailures = results.Failures.FailuresByKey["C"];
+
+            Assert.That(aFailures.Count is 1);
+            Assert.That(bFailures.Count is 1);
+            Assert.That(cFailures.Count is 1);
+
             {
-                var failReasons = results.Failures.GetFailureReasons(key);
-                //Each should have 1 failure
-                Assert.That(failReasons.Count is 1);
-
-                //Part of cycle
-                if (key is "A" or "B")
-                {
-                    Assert.That(failReasons[0] is PartOfACycleFailure<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["A", "B"]));
-                }
-                //Depends on the cycle
-                else if (key is "C")
-                {
-                    Assert.That(failReasons[0] is InvalidDependencyFailure<string> invalid && invalid.Dependency is "A");
-                }
+                Assert.That(aFailures[0].Reason is PartOfACycleFailure<string> cycle && cycle.NodesInCycle.SequenceEqual(["A", "B"]));
+            }
+            {
+                Assert.That(bFailures[0].Reason is PartOfACycleFailure<string> cycle && cycle.NodesInCycle.SequenceEqual(["A", "B"]));
+            }
+            {
+                Assert.That(cFailures[0].Reason is InvalidDependencyFailure<string> invalid && invalid.Dependency is "A");
             }
         });
     }
@@ -244,23 +265,29 @@ public class Tests
         {
             Assert.That(results.Ordered.SequenceEqual(["E"]));
 
-            Assert.That(results.Failures.FailedKeys.Count is 4);
-            foreach (var key in results.Failures.FailedKeys)
-            {
-                var failReasons = results.Failures.GetFailureReasons(key);
-                //Each should have 1 failure
-                Assert.That(failReasons.Count is 1);
+            Assert.That(results.Failures.FailuresByKey.Keys.Count() is 4);
 
-                //Part of cycle 1
-                if (key is "A" or "B")
-                {
-                    Assert.That(failReasons[0] is PartOfACycleFailure<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["A", "B"]));
-                }
-                //Part of cycle 2
-                else if (key is "C" or "D")
-                {
-                    Assert.That(failReasons[0] is PartOfACycleFailure<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["C", "D"]));
-                }
+            var aFailures = results.Failures.FailuresByKey["A"];
+            var bFailures = results.Failures.FailuresByKey["B"];
+            var cFailures = results.Failures.FailuresByKey["C"];
+            var dFailures = results.Failures.FailuresByKey["D"];
+
+            Assert.That(aFailures.Count is 1);
+            Assert.That(bFailures.Count is 1);
+            Assert.That(cFailures.Count is 1);
+            Assert.That(dFailures.Count is 1);
+
+            {
+                Assert.That(aFailures[0].Reason is PartOfACycleFailure<string> cycle && cycle.NodesInCycle.SequenceEqual(["A", "B"]));
+            }
+            {
+                Assert.That(bFailures[0].Reason is PartOfACycleFailure<string> cycle && cycle.NodesInCycle.SequenceEqual(["A", "B"]));
+            }
+            {
+                Assert.That(cFailures[0].Reason is PartOfACycleFailure<string> cycle && cycle.NodesInCycle.SequenceEqual(["C", "D"]));
+            }
+            {
+                Assert.That(dFailures[0].Reason is PartOfACycleFailure<string> cycle && cycle.NodesInCycle.SequenceEqual(["C", "D"]));
             }
         });
     }
@@ -325,25 +352,29 @@ public class Tests
         {
             Assert.That(results.Ordered.SequenceEqual(["Config", "OptionalConsumer", "Database", "Cache", "Api"]));
 
-            Assert.That(results.Failures.FailedKeys.Count is 4);
-            foreach (var key in results.Failures.FailedKeys)
-            {
-                var failReasons = results.Failures.GetFailureReasons(key);
-                //Each should have 1 failure
-                Assert.That(failReasons.Count is 1);
+            Assert.That(results.Failures.FailuresByKey.Keys.Count() is 4);
 
-                if (key is "MissingConsumer")
-                {
-                    Assert.That(failReasons[0] is MissingDependencyFailure<string> missing && missing.MissingKey is "NotPresent");
-                }
-                else if (key is "CycleA" or "CycleB")
-                {
-                    Assert.That(failReasons[0] is PartOfACycleFailure<string> cycle && cycle.Cycle.NodesInCycle.SequenceEqual(["CycleA", "CycleB"]));
-                }
-                else if (key is "Worker")
-                {
-                    Assert.That(failReasons[0] is InvalidDependencyFailure<string> invalid && invalid.Dependency is "CycleA");
-                }
+            var missingConsumerFailures = results.Failures.FailuresByKey["MissingConsumer"];
+            var cycleAFailures = results.Failures.FailuresByKey["CycleA"];
+            var cycleBFailures = results.Failures.FailuresByKey["CycleB"];
+            var workerFailures = results.Failures.FailuresByKey["Worker"];
+
+            Assert.That(missingConsumerFailures.Count is 1);
+            Assert.That(cycleAFailures.Count is 1);
+            Assert.That(cycleBFailures.Count is 1);
+            Assert.That(workerFailures.Count is 1);
+
+            {
+                Assert.That(missingConsumerFailures[0].Reason is MissingDependencyFailure<string> missing && missing.MissingKey is "NotPresent");
+            }
+            {
+                Assert.That(cycleAFailures[0].Reason is PartOfACycleFailure<string> cycle && cycle.NodesInCycle.SequenceEqual(["CycleA", "CycleB"]));
+            }
+            {
+                Assert.That(cycleBFailures[0].Reason is PartOfACycleFailure<string> cycle && cycle.NodesInCycle.SequenceEqual(["CycleA", "CycleB"]));
+            }
+            {
+                Assert.That(workerFailures[0].Reason is InvalidDependencyFailure<string> invalid && invalid.Dependency is "CycleA");
             }
         });
     }
@@ -369,9 +400,9 @@ public class Tests
             Assert.That(results.Ordered.Contains("Item 4") is false);
 
             //Also make sure that the 1st instance was added and failed
-            Assert.That(results.Failures.GetFailureReasons("Item 4")[0] is MissingDependencyFailure<string>);
+            Assert.That(results.Failures.FailuresByKey["Item 4"][0].Reason is MissingDependencyFailure<string> missing && missing.MissingKey is "Item 9");
 
-            Assert.That(results.Failures.GetGlobalFailures()[0] is DuplicateKeyFailure<string> duplicate && duplicate.Duplicate is "Item 4");
+            Assert.That(results.Failures.GlobalFailures[0].Reason is DuplicateKeyFailure<string> duplicate && duplicate.Duplicate is "Item 4");
         });
     }
 }
