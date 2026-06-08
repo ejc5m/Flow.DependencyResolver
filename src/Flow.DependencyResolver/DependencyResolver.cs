@@ -4,7 +4,7 @@ using Flow.DependencyResolver.Internal.Pipeline;
 
 namespace Flow.DependencyResolver;
 
-public delegate TKey DependencyKeySelector<T, TKey>(T Item);
+public delegate TKey DependencyKeySelector<T, TKey>(T item);
 public delegate IReadOnlyCollection<Dependency<TKey>> DependencySelector<T, TKey>(T item);
 
 public static class DependencyResolver
