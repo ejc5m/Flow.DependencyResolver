@@ -6,5 +6,5 @@ public class Failure : IFailure
 
     internal Failure(IFailureReason reason) => Reason = reason;
 
-    public override string ToString() => Reason.ToString();
+    public override string ToString() => Reason.ToString() ?? string.Empty;
 }
