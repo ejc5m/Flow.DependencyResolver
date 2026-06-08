@@ -387,22 +387,26 @@ public class Tests
             new TestingItem("Item 1", []),
             new TestingItem("Item 2", [new Dependency<string>("Item 4").Optional()]),
             new TestingItem("Item 3", [new("Item 5")]),
-            new TestingItem("Item 4", [new("Item 9")]),
             new TestingItem("Item 4", []),
-            new TestingItem("Item 5", []),
+            new TestingItem("Item 4", []),
+            new TestingItem("Item 5", [new("Item 4")]),
         ];
 
         var results = DependencyResolver.Resolve(Items, item => item.Name, item => item.Dependencies);
 
         Assert.Multiple(() =>
         {
-            //Make sure the duplicate didn't get added
+            //Make sure none of them got added
             Assert.That(results.Ordered.Contains("Item 4") is false);
 
-            //Also make sure that the 1st instance was added and failed
-            Assert.That(results.Failures.FailuresByKey["Item 4"][0].Reason is MissingDependencyFailure<string> missing && missing.MissingKey is "Item 9");
+            //There shouldnt be any failures on this key itself, only a global failure
+            Assert.That(!results.Failures.FailuresByKey.ContainsKey("Item 4"));
 
+            //Check for that global failure
             Assert.That(results.Failures.GlobalFailures[0].Reason is DuplicateKeyFailure<string> duplicate && duplicate.Duplicate is "Item 4");
+
+            //Make sure item 5 that depends on the duplicate gets a invalid dependency failure and not a missing dependency failure
+            Assert.That(results.Failures.FailuresByKey["Item 5"][0].Reason is InvalidDependencyFailure<string> invalid && invalid.Dependency is "Item 4");
         });
     }
 }
