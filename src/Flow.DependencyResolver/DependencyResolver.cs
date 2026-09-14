@@ -9,35 +9,30 @@ public delegate IReadOnlyCollection<Dependency<TKey>> DependencySelector<T, TKey
 
 public static class DependencyResolver
 {
-    internal static DependencyResolutionResult<TKey> Resolve<TKey>(IReadOnlyCollection<DependencyNode<TKey>> nodes) where TKey : notnull
+    internal static DependencyResolutionResult<TKey> Resolve<TKey>(IReadOnlyCollection<DependencyNode<TKey>> nodes, IEqualityComparer<TKey>? comparer = null) where TKey : notnull
     {
-        var failureCollection = new FailureCollection<TKey>();
-        var graph = GraphBuilder.Build(nodes, failureCollection);
+        comparer ??= EqualityComparer<TKey>.Default;
 
-        CycleDetector.DetectCycles(graph, failureCollection);
-        FailurePropagator.Propogate(graph, failureCollection);
-        var ordered = TopologicalSorter.Sort(graph, failureCollection);
+        var failureCollection = new FailureCollection<TKey>(comparer);
+        var graph = GraphBuilder.Build(nodes, failureCollection, comparer);
+
+        CycleDetector.DetectCycles(graph, failureCollection, comparer);
+        FailurePropagator.Propogate(graph, failureCollection, comparer);
+        var ordered = TopologicalSorter.Sort(graph, failureCollection, comparer);
 
         return new DependencyResolutionResult<TKey>(ordered, failureCollection);
     }
 
-    public static DependencyResolutionResult<TKey> Resolve<T, TKey>(IReadOnlyCollection<T> items, DependencyKeySelector<T, TKey> getKey, DependencySelector<T, TKey> getDependencies) where TKey : notnull
+    public static DependencyResolutionResult<TKey> Resolve<T, TKey>(IReadOnlyCollection<T> items, DependencyKeySelector<T, TKey> getKey, DependencySelector<T, TKey> getDependencies, IEqualityComparer<TKey>? comparer = null) where TKey : notnull
     {
-        IReadOnlyCollection<DependencyNode<TKey>> nodes = items.Select(node => 
+        IReadOnlyCollection<DependencyNode<TKey>> nodes = items.Select(node =>
         {
             var key = getKey(node);
             var dependencies = getDependencies(node);
             return new DependencyNode<TKey>(key, dependencies);
         }).ToList();
 
-        var failureCollection = new FailureCollection<TKey>();
-        var graph = GraphBuilder.Build(nodes, failureCollection);
-
-        CycleDetector.DetectCycles(graph, failureCollection);
-        FailurePropagator.Propogate(graph, failureCollection);
-        var ordered = TopologicalSorter.Sort(graph, failureCollection);
-
-        return new DependencyResolutionResult<TKey>(ordered, failureCollection);
+        return Resolve(nodes, comparer);
     }
 
     public static Builder<T, TKey> From<T, TKey>(IReadOnlyCollection<T> items) where TKey : notnull
@@ -63,11 +58,11 @@ public static class DependencyResolver
             return this;
         }
 
-        public DependencyResolutionResult<TKey> Resolve()
+        public DependencyResolutionResult<TKey> Resolve(IEqualityComparer<TKey>? comparer = null)
         {
             if (_keyGetter is null) throw new InvalidOperationException("Key getter isn't set");
             if (_dependencyGetter is null) throw new InvalidOperationException("Dependency getter isn't set");
-            return DependencyResolver.Resolve(_items, _keyGetter, _dependencyGetter);
+            return DependencyResolver.Resolve(_items, _keyGetter, _dependencyGetter, comparer);
         }
     }
 }

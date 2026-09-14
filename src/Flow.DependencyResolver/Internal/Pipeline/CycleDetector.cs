@@ -6,22 +6,22 @@ namespace Flow.DependencyResolver.Internal.Pipeline;
 
 internal static class CycleDetector
 {
-    internal static void DetectCycles<TKey>(Graph<TKey> graph, FailureCollection<TKey> failureCollection) where TKey : notnull
+    internal static void DetectCycles<TKey>(Graph<TKey> graph, FailureCollection<TKey> failureCollection, IEqualityComparer<TKey> comparer) where TKey : notnull
     {
-        var visited = new HashSet<TKey>();
-        var recStack = new HashSet<TKey>();
+        var visited = new HashSet<TKey>(comparer);
+        var recStack = new HashSet<TKey>(comparer);
         var path = new List<TKey>();
 
         foreach (var node in graph.Forward.Keys)
         {
             if (!visited.Contains(node))
             {
-                DFS(node, graph, failureCollection, visited, recStack, path);
+                DFS(node, graph, failureCollection, visited, recStack, path, comparer);
             }
         }
     }
 
-    private static void DFS<TKey>(TKey current, Graph<TKey> graph, FailureCollection<TKey> failureCollection, HashSet<TKey> visited, HashSet<TKey> recStack, List<TKey> path) where TKey : notnull
+    private static void DFS<TKey>(TKey current, Graph<TKey> graph, FailureCollection<TKey> failureCollection, HashSet<TKey> visited, HashSet<TKey> recStack, List<TKey> path, IEqualityComparer<TKey> comparer) where TKey : notnull
     {
         visited.Add(current);
         recStack.Add(current);
@@ -31,12 +31,12 @@ internal static class CycleDetector
         {
             if (!visited.Contains(next))
             {
-                DFS(next, graph, failureCollection, visited, recStack, path);
+                DFS(next, graph, failureCollection, visited, recStack, path, comparer);
             }
             else if (recStack.Contains(next))
             {
                 //Cycle detected
-                int index = path.IndexOf(next);
+                int index = path.FindIndex(x => comparer.Equals(x, next));
                 var cycle = path.Skip(index).ToList();
 
                 foreach (var nodeInCycle in cycle)

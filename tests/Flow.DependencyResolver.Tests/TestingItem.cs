@@ -2,15 +2,15 @@
 
 namespace Flow.DependencyResolver.Tests;
 
-public class TestingItem
+public class TestingItem<T>
 {
-    public required string Name;
-    public Dependency<string>[] Dependencies = [];
+    public required T Key;
+    public Dependency<T>[] Dependencies = [];
 
     [SetsRequiredMembers]
-    public TestingItem(string name, Dependency<string>[] dependencies)
+    public TestingItem(T key, Dependency<T>[] dependencies)
     {
-        Name = name;
+        Key = key;
         Dependencies = dependencies;
     }
 

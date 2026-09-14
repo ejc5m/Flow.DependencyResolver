@@ -5,10 +5,10 @@ namespace Flow.DependencyResolver.Internal.Graph;
 
 internal static class GraphBuilder
 {
-    internal static Graph<TKey> Build<TKey>(IReadOnlyCollection<DependencyNode<TKey>> nodes, FailureCollection<TKey> failureCollection) where TKey : notnull
+    internal static Graph<TKey> Build<TKey>(IReadOnlyCollection<DependencyNode<TKey>> nodes, FailureCollection<TKey> failureCollection, IEqualityComparer<TKey> comparer) where TKey : notnull
     {
-        Graph<TKey> graph = new();
-        HashSet<TKey> duplicates = [];
+        Graph<TKey> graph = new(nodes.Count, comparer);
+        HashSet<TKey> duplicates = new(comparer);
 
         foreach (var node in nodes)
         {
@@ -28,7 +28,7 @@ internal static class GraphBuilder
             graph.Reverse[node.Key] = [];
         }
 
-        HashSet<TKey> knownKeys = nodes.Select(node => node.Key).Where(key => !duplicates.Contains(key)).ToHashSet();
+        HashSet<TKey> knownKeys = new(nodes.Select(node => node.Key).Where(key => !duplicates.Contains(key)), comparer);
 
         foreach (var node in nodes)
         {
@@ -50,8 +50,15 @@ internal static class GraphBuilder
                     continue;
                 }
 
-                graph.Forward[node.Key].Add(dependency.Key);
-                graph.Reverse[dependency.Key].Add(node.Key);
+                TKey source = dependency.Direction == DependencyDirection.After ? dependency.Key : node.Key;
+                TKey target = dependency.Direction == DependencyDirection.After ? node.Key : dependency.Key;
+
+                //Ignore duplicate dependencies, e.g if Item1 depends on Item2 and Item2
+                if (!graph.Forward[target].Contains(source, comparer))
+                {
+                    graph.Forward[target].Add(source);
+                    graph.Reverse[source].Add(target);
+                }
             }
         }
 

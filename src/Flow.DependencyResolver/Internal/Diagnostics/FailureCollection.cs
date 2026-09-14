@@ -2,16 +2,16 @@
 
 namespace Flow.DependencyResolver.Internal.Diagnostics;
 
-internal sealed class FailureCollection<TKey> : IReadOnlyFailureCollection<TKey> where TKey : notnull
+internal sealed class FailureCollection<TKey>(IEqualityComparer<TKey> comparer) : IReadOnlyFailureCollection<TKey> where TKey : notnull
 {
-    private readonly List<Failure> _globalFailures = []; 
-    private readonly Dictionary<TKey, List<KeyedFailure<TKey>>> _failuresByKey = [];
+    private readonly List<Failure> _globalFailures = [];
+    private readonly Dictionary<TKey, List<KeyedFailure<TKey>>> _failuresByKey = new Dictionary<TKey, List<KeyedFailure<TKey>>>(comparer);
 
     //Public API
     public IReadOnlyList<Failure> GlobalFailures => _globalFailures;
 
     public IReadOnlyDictionary<TKey, IReadOnlyList<KeyedFailure<TKey>>> FailuresByKey =>
-        _failuresByKey.ToDictionary(x => x.Key, x => (IReadOnlyList<KeyedFailure<TKey>>)x.Value.AsReadOnly()).AsReadOnly();
+        _failuresByKey.ToDictionary(x => x.Key, x => (IReadOnlyList<KeyedFailure<TKey>>)x.Value.AsReadOnly(), comparer);
 
     public IEnumerable<IFailure> EnumerateFailures()
     {
@@ -24,7 +24,7 @@ internal sealed class FailureCollection<TKey> : IReadOnlyFailureCollection<TKey>
     }
 
     //Internal helper methods
-    internal IReadOnlySet<TKey> FailedKeys => _failuresByKey.Keys.ToHashSet();
+    internal IReadOnlyCollection<TKey> FailedKeys => new HashSet<TKey>(_failuresByKey.Keys, comparer);
     internal bool HasFailures(TKey key) => _failuresByKey.ContainsKey(key);
 
     internal void AddFailureReason(TKey key, IFailureReason reason)

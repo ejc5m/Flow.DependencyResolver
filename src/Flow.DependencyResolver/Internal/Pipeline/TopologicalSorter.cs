@@ -5,9 +5,9 @@ namespace Flow.DependencyResolver.Internal.Pipeline;
 
 internal static class TopologicalSorter
 {
-    internal static IReadOnlyCollection<TKey> Sort<TKey>(Graph<TKey> graph, FailureCollection<TKey> failureCollection) where TKey : notnull
+    internal static IReadOnlyCollection<TKey> Sort<TKey>(Graph<TKey> graph, FailureCollection<TKey> failureCollection, IEqualityComparer<TKey> comparer) where TKey : notnull
     {
-        var inDegree = new Dictionary<TKey, int>();
+        var inDegree = new Dictionary<TKey, int>(comparer);
 
         foreach (var node in graph.Forward.Keys)
         {

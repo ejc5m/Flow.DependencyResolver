@@ -16,7 +16,7 @@ public class DependencyGraphBuilder<TKey> where TKey : notnull
         return _currentNode;
     }
 
-    internal DependencyResolutionResult<TKey> Resolve() => DependencyResolver.Resolve(Nodes);
+    internal DependencyResolutionResult<TKey> Resolve(IEqualityComparer<TKey>? comparer = null) => DependencyResolver.Resolve(Nodes, comparer);
 }
 
 

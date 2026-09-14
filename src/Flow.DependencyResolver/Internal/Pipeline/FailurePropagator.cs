@@ -6,7 +6,7 @@ namespace Flow.DependencyResolver.Internal.Pipeline;
 
 internal static class FailurePropagator
 {
-    internal static void Propogate<TKey>(Graph<TKey> graph, FailureCollection<TKey> failureCollection) where TKey : notnull
+    internal static void Propogate<TKey>(Graph<TKey> graph, FailureCollection<TKey> failureCollection, IEqualityComparer<TKey> comparer) where TKey : notnull
     {
         var queue = new Queue<TKey>(failureCollection.FailedKeys);
 
@@ -16,7 +16,7 @@ internal static class FailurePropagator
 
             foreach (var dependent in graph.Reverse[invalidNode])
             {
-                if (AreInSameCycle(failureCollection, dependent, invalidNode)) continue;
+                if (AreInSameCycle(failureCollection, dependent, invalidNode, comparer)) continue;
 
                 if (!failureCollection.HasFailures(dependent))
                     queue.Enqueue(dependent);
@@ -26,13 +26,13 @@ internal static class FailurePropagator
         }
     }
 
-    private static bool AreInSameCycle<TKey>(FailureCollection<TKey> failureCollection, TKey a, TKey b) where TKey : notnull
+    private static bool AreInSameCycle<TKey>(FailureCollection<TKey> failureCollection, TKey a, TKey b, IEqualityComparer<TKey> comparer) where TKey : notnull
     {
         if (!failureCollection.FailuresByKey.TryGetValue(a, out var failures))
             return false;
 
         foreach (var failure in failures)
-            if (failure.Reason is PartOfACycleFailure<TKey> cycle && cycle.NodesInCycle.Contains(b))
+            if (failure.Reason is PartOfACycleFailure<TKey> cycle && cycle.NodesInCycle.Contains(b, comparer))
                 return true;
 
         return false;
