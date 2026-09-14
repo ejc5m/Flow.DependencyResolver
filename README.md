@@ -4,11 +4,11 @@ A simple dependency resolver for dotnet.
 
 It resolves dependencies by removing duplicates, detecting cycles, propogating failures, and topologically sorting the dependencies.
 
-## Quick Example
+# Quick Example
 
-### There are two main ways to use this:
+## There are two main ways to use this:
 
-Option 1 - Creating the items separately beforehand and resolving them after:
+### Option 1 - Creating the items separately beforehand and resolving them after:
 ```csharp
 using Flow.DependencyResolver;
 
@@ -78,3 +78,43 @@ But you can also make your own message using failure.Reason, and if the failure 
 You can also use the `results.Failures.FailuresByKey` dictionary to manually enumerate failures on all nodes or to get failures for a specific node.
 
 And you can use `results.Failures.GlobalFailures` to manually enumerate all failures not attached to a specific node (Duplicate key failures).
+# Things to know
+Types with value based equality are preferred to ensure that 2 keys that seem equal are actually equal, e.g. records or types inherting `IEquatable<Self>` and overriding `GetHashCode()` and `Equals()`
+```cs
+public record StringWrapper(string Text);
+```
+```cs
+public class StringWrapper(string text) : IEquatable<StringWrapper>
+{
+    public string Text = text;
+
+    public bool Equals(StringWrapper? other) => other is not null && string.Equals(Text, other.Text);
+
+    public override bool Equals(object? obj) => Equals(obj as StringWrapper);
+
+    public override int GetHashCode() => Text.GetHashCode();
+}
+```
+And if the type doesn't have value based equality, and you can't add it to the type, e.g.
+```cs
+public class StringWrapper(string text)
+{
+    public string Text = text;
+}
+```
+All the Resolve methods take in an optional `IEqualityComparer<T>`, e.g.
+```cs
+public class StringWrapperComparer : IEqualityComparer<StringWrapper>
+{
+    public bool Equals(StringWrapper? x, StringWrapper? y)
+    {
+        if (ReferenceEquals(x, y)) return true;
+
+        if (x is null || y is null) return false;
+
+        return string.Equals(x.Text, y.Text, StringComparison.Ordinal);
+    }
+
+    public int GetHashCode(StringWrapper obj) => obj.Text.GetHashCode();
+}
+```
