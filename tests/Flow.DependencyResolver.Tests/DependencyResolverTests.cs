@@ -431,7 +431,7 @@ public class Tests
         var key1 = new StringWrapper("Item 1");
         var key1Duplicate = new StringWrapper("Item 1");
 
-        List<TestingItem<StringWrapper>> Items = 
+        List<TestingItem<StringWrapper>> Items =
         [
             new TestingItem<StringWrapper>(key1, []),
             new TestingItem<StringWrapper>(new StringWrapper("Item 2"), [new Dependency<StringWrapper>(key1Duplicate)])

@@ -32,6 +32,9 @@ internal static class GraphBuilder
 
         foreach (var node in nodes)
         {
+            if (duplicates.Contains(node.Key))
+                continue;
+
             foreach (var dependency in node.Dependencies)
             {
                 if (duplicates.Contains(dependency.Key))

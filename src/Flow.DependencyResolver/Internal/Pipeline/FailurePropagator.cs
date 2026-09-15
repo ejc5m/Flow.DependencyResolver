@@ -8,7 +8,7 @@ internal static class FailurePropagator
 {
     internal static void Propogate<TKey>(Graph<TKey> graph, FailureCollection<TKey> failureCollection, IEqualityComparer<TKey> comparer) where TKey : notnull
     {
-        var queue = new Queue<TKey>(failureCollection.FailedKeys);
+        var queue = new Queue<TKey>(failureCollection.FailedKeys.Where(graph.Reverse.ContainsKey));
 
         while (queue.Count > 0)
         {
