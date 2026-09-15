@@ -49,6 +49,9 @@ DependencyResolutionResult<string> results = DependencyGraph.Create()
     .Add("Item 7").DependsOn("Item 6")
     .Resolve();
 ```
+
+### Additional things
+- You can also say that a node goes before a dependency by either using `.Before()` when creating a `Dependency<TKey>` or with `.IsDependedOnBy()` when using the `DependencyNodeBuilder<TKey>`
 # Results
 The results of the dependency resolution can be accessed from `results.Ordered`.
 
